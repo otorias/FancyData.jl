@@ -338,6 +338,37 @@ function readfits(file::AbstractString; mode::Symbol=:peak)
     return DF
 end
 
+function LsqFit.curve_fit(
+    model,
+    xdata::AbstractArray,
+    ydata::AbstractArray{<:Measurement},
+    p0::AbstractArray;
+    inplace=false,
+    kwargs...,
+)
+    LsqFit.curve_fit(model, xdata, val.(ydata), 1 ./ unc.(ydata).^2, p0; inplace, kwargs...)
+end
+
+function LsqFit.curve_fit(
+    model,
+    jacobian_model,
+    xdata::AbstractArray,
+    ydata::AbstractArray{<:Measurement},
+    p0::AbstractArray;
+    inplace=false,
+    kwargs...,
+)
+    LsqFit.curve_fit(
+        model, 
+        jacobian_model, 
+        xdata, 
+        val.(ydata), 1 ./ unc.(ydata).^2,
+        p0;
+        inplace,
+        kwargs...
+    )
+end
+
 export val, unc, mes, wmean, mean_std, tableDF, writeDF, readDF, readfits
 
 end
