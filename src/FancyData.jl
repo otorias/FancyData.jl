@@ -169,19 +169,22 @@ end
 
 """
     writeDF(file_out::AbstractString, DF::AbstractDataFrame; delim::Char='\\t')
+    writeDF(file_out::AbstractString, DF::AbstractDataFrame, delim::Char='\\t')
 
 Saves a DataFrame as a delimted file with default delimiter `\\t`.
 """
 writeDF(out::AbstractString,DF::AbstractDataFrame;delim::Char='\t') = writedlm(out,Iterators.flatten(([names(DF)],eachrow(DF))), delim)
+writeDF(out::AbstractString,DF::AbstractDataFrame,delim::Char='\t') = writedlm(out,Iterators.flatten(([names(DF)],eachrow(DF))), delim)
 
 """
     readDF(file_in::AbstractString; delim::Char='\\t')
+    readDF(file_in::AbstractString, delim::Char='\\t')
 
 Reads a delimited file to a DataFrame with default delimiter `\\t` and attempts basic parseing of Measurements and Missing fields.
 """
 function readDF(path_to_DF::AbstractString; delim::Char='\t')
     data = readdlm(path_to_DF, delim)
-    names = Symbol.(data[1,:])
+    names = Symbol.(strip.(data[1,:]))
     matrix = data[2:end,:]
 
     function transform_element(val)
@@ -196,8 +199,18 @@ function readDF(path_to_DF::AbstractString; delim::Char='\t')
             return val
         end
     end
-    return DataFrame(transform_element.(matrix), names)
+
+    DF = DataFrame(transform_element.(matrix), names)
+
+    for name in collect(names)
+        types = unique(typeof.(DF[:,name]))
+        DF[!,name] = convert(Vector{Union{types...}}, DF[:,name])
+    end
+        
+    return DF
+
 end 
+readDF(path_to_DF::AbstractString, delim::Char='\t') = readDF(path_to_DF, delim=delim)
 
 """
     readfits(XML_file::AbstractString; mode::Symbol=:peak)
