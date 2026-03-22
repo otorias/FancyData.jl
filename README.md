@@ -15,8 +15,6 @@ Then use with
 using FancyData
 ```
 
-if you want to edit the package.
-
 ## Getting started
 
 ### Measurement utilities
